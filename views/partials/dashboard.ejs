@@ -1,0 +1,47 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+
+  <nav class="navbar navbar-expand navbar-dark bg-dark" style="padding: 5px 5px">
+    <a class="navbar-brand" href="/">ABCSD</a>
+    <ul class="navbar-nav mr-auto mynavbar">
+      <li class="nav-item">
+        <a class="nav-link mynavlink" href="/">Home</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link mynavlink" href="/profile">Profile</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link mynavlink" href="/checkGoods">Search Goods</a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ms-auto mynavbar">
+      <% if (typeof username == "undefined") { %>
+        <% } else if (username.priv == "admin") { %>
+        <li class="nav-item navright">
+              <a class="nav-link mynavlink" href="/register">Register</a>
+        </li>
+        <li class="nav-item navright">
+          <a class="nav-link mynavlink" href="/edit">Edit User</a>
+    </li>
+        <% } -%>
+        <li class="nav-item navright">
+            <% if (typeof username == "undefined") { %>
+              <a class="nav-link mynavlink">guest</a>
+            <% } else{ %>
+              <a class="nav-link mynavlink" href="/profile"><%= username.name %></a>
+            <% } -%>
+        </li>
+        <li class="nav-item navright">
+          <% if (typeof username == "undefined") { %>
+            <a class="nav-link mynavlink" href="/login" method="POST">Log in</a>
+          <% } else{ %>
+            
+            <form action="/logout?_method=DELETE" method="POST" style="display: inline">
+
+              <a class="nav-link mynavlink active" href="javascript:;" onclick="parentNode.submit();">Log out</a>
+              <input type="hidden" name="logout" value="Logout"/>
+            </form>
+            
+          <% } -%>
+        </li>
+      </ul>
+  </nav>

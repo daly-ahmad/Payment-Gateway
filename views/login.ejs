@@ -1,0 +1,40 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+
+<title>Login</title>
+
+<head>
+  <%- include('partials/dashboard'); %>
+</head>
+
+<p class="errorMessage"><% if(messages.error) { %> <%= messages.error %> <% } %></p>
+<div class = "container1">
+  <div class="row align-items-start">
+    <div class="col-md-2"></div>
+    <div class="col-md-4">
+      <img src="images/catbox.jpg" alt="MARS" style="width:500px; height: 500px">
+    </div>
+    <div class="container col-md-4">
+      <h2>Log in into your account</h2>
+      <form action="/login" method="POST">
+        <div>
+          <p style=font-weight:bold>Username/E-mail</p>
+          <input type="text" id="email" name="email" placeholder="Username/E-mail..." size="30" />
+        </div>
+        <br>
+        <div>
+          <p style=font-weight:bold>Password</p>
+          <input type="password" id="password" name="password" placeholder="Password..." size="30"/>
+        </div>
+        <br>
+        <button type="submit" style="padding-left:20px; padding-right: 20px">Login</button>
+        <p></p>
+        <p>Not a user? <a href="/register">Register</a></p>
+      </form>
+    </div>
+    <div class="col-md-2"></div>
+  </div>
+</div>
+
+<footer>
+  <%- include('partials/footer'); %>
+</footer>
