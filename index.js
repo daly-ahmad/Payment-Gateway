@@ -155,12 +155,12 @@ app.get("/edit", requireAdmin, async (req, res) => {
   
 })
 
-app.post("/edit", async (req, res) => {
+app.post("/edit/:_id", async (req, res) => {
   const { _id, name, email, password, priv } = req.body;
   
-    
+
     await User.updateMany({ 
-      _id:req.body._id
+      _id:_id
       },
       {
       $set: {
@@ -174,9 +174,20 @@ app.post("/edit", async (req, res) => {
       }
     )
     console.log("redirecting from updating user")
-    res.redirect("/profile");
+    res.redirect("/edit");
 });
 
+app.post("/delete/:_id", async (req, res) => {
+  const { _id, name, email, password, priv } = req.body;
+  
+
+    await User.findOneAndDelete({ 
+      _id:_id
+      },
+    )
+    console.log("redirecting from deleting user")
+    res.redirect("/edit");
+});
 
 //unfinished pages
 app.get("/wip", requireLogin, (req, res) => {

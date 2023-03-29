@@ -5,7 +5,7 @@
 </head>
 <div class="container-fluid">
 <h1>Edit an account</h1>
-<form action="/edit" method="POST">
+
   <table class="table table-striped table-sm table-bordered">
     <tr>
         <th scope="row">_id</th>
@@ -17,20 +17,23 @@
     </tr>
     <% if (user) { %>
         <% for (var i = 0; i < user.length; i++) { %>
+          <form action="/edit/<%= user[i]._id %>" method="POST">
             <tr>
               <td><input type="text" name="_id" value="<%= user[i]._id %>" readonly/></td>
               <td><input type="text" name="name" value="<%= user[i].name %>"/></td>
               <td><input type="text" name="email" value="<%= user[i].email %>"/></td>
               <td><input type="password" name="password" placeholder=" ******** " readonly /> </td>
               <td><input type="text" name="priv" value="<%= user[i].priv %>"/></td>
-              <td><button type="submit">Save</button> <button type="submit">Delete</button></td>
+              <td><button type="submit">Save</button> <button type="submit" formaction="/delete/<%= user[i]._id %>">Delete</button></td>
             </tr>
+          </form>
         <% } %>
   <% } %>
 </table>
-  <button type="submit">Save</button>
-  <p>Already a user? <a href="/">Login</a></p>
-</form>
+
+  
+  <p>Register new user? <a href="/register">Register</a></p>
+
 </div>
 <footer>
   <%- include('partials/footer'); %>

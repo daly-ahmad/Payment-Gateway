@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema(
     },
     priv: {
       type: String,
-    }
+    },
   },
   { timestamps: true }
 );
