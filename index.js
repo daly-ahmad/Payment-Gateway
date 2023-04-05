@@ -5,6 +5,7 @@ const session = require("express-session");
 const flash = require("express-flash");
 const override = require("method-override");
 const MongoStore = require("connect-mongo");
+const axios = require("axios");
 
 initializePassport(passport);
 const app = express()
@@ -48,6 +49,9 @@ app.use(passport.session());
 
 //using files in public folder
 app.use(express.static(__dirname + '/public'));
+
+//API Testing currency exchange
+
 
 //set name into session post login
 app.use(function(req, res, next) {
@@ -104,6 +108,10 @@ app.get("/", requireLogin, (req, res) => {
 
 app.post("/", requireLogin, (req, res) => {
   res.render("index.ejs")
+})
+
+app.get("/payment", requireLogin, (req, res) => {
+  res.render("payment.ejs")
 })
 
 app.get("/register", requireAdmin, (req, res) => {
