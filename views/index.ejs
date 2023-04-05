@@ -15,14 +15,16 @@
       <div class="col-md-2"></div>
       <div class="col-md-4">
         <div class="container" style="margin-top: 50px; padding: 10px; border: solid 1px black">
-          <form method="POST" action="/https://mydomain.com/orderreturn?Type=success&order_id="+"req.body.order_id"+"&{JSON_PAYLOAD}">
+          <form method="POST" action="/payment">
             <table>
               <tr>
                 <td><label>Order ID : </label></td>
+                <td></td>
                 <td><input type="text" name="order_id"></input></td>
               </tr>
               <tr>
                 <td><label>Amount : </label></td>
+                <td></td>
                 <td><input type="text" name="amount"></input></td>
               </tr>
 

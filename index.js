@@ -57,7 +57,6 @@ app.use(express.static(__dirname + '/public'));
 app.use(function(req, res, next) {
   if (req.user){
     res.locals.username = req.user;
-    console.log("req.user.name = " + req.user.name + " & req.user.email = " + req.user.email);
   }
   else{
     console.log("Not logged in")
@@ -112,6 +111,11 @@ app.post("/", requireLogin, (req, res) => {
 
 app.get("/payment", requireLogin, (req, res) => {
   res.render("payment.ejs")
+})
+
+app.post("/payment", requireLogin, (req, res) => {
+  const { order_id, amount } = req.body;
+  res.render("payment.ejs", {order_id: order_id, amount: amount})
 })
 
 app.get("/register", requireAdmin, (req, res) => {
