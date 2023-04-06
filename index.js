@@ -101,7 +101,7 @@ app.use(override("_method"));
 
 
 
-app.get("/", requireLogin, (req, res) => {
+app.get("/", (req, res) => {
   res.render("index.ejs")
 })
 
@@ -109,11 +109,11 @@ app.post("/", requireLogin, (req, res) => {
   res.render("index.ejs")
 })
 
-app.get("/payment", requireLogin, (req, res) => {
+app.get("/payment", (req, res) => {
   res.render("payment.ejs")
 })
 
-app.post("/payment", requireLogin, (req, res) => {
+app.post("/payment", (req, res) => {
   const { order_id, amount } = req.body;
   res.render("payment.ejs", {order_id: order_id, amount: amount})
 })
