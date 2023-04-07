@@ -122,6 +122,8 @@ app.get("/", requireLogin, (req, res) => {
 app.post("/payment", async (req, res) => {
   const { 
     order_id, 
+    amount,
+    currency,
     finalAmount, 
   } = req.body;
   const user = req.user.name;
@@ -135,7 +137,9 @@ app.post("/payment", async (req, res) => {
       phone: phone,
       merchant_id: merchant_id,
       order_id,
-      amount : finalAmount,
+      amount : amount,
+      currency : currency,
+      amount_bnd : finalAmount,
      });
     await transaction.save();
   } catch (error) {

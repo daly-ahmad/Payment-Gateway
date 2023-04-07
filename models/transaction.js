@@ -14,6 +14,12 @@ const transactionSchema = new mongoose.Schema(
     amount: {
         type: Number,
     },
+    currency: {
+        type: String,
+    },
+    amount_bnd: {
+        type: Number,
+    },
     phone: {
       type: String,
     },
