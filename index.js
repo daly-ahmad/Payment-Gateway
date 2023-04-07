@@ -55,7 +55,6 @@ app.use(express.static(__dirname + '/public'));
 app.use(function(req, res, next) {
   if (req.user){
     res.locals.username = req.user;
-    console.log(req.user.name);
   }
   else{
     console.log("Not logged in")
@@ -111,40 +110,14 @@ app.get("/", requireLogin, (req, res) => {
   };
   
   axios.request(options).then(function (response) {
-    console.log(response.data.rates.USD);
     const usd = response.data.rates.USD;
     const twd = response.data.rates.TWD;
     const myr = response.data.rates.MYR;
-    console.log("User is " + req.user.name)
     res.render("index.ejs", {usd, twd, myr})
   }).catch(function (error) {
     console.error(error);
   });
 })
-
-app.post("/", requireLogin, (req, res) => {
-  const options = {
-    method: 'GET',
-    url: 'https://exchangerate-api.p.rapidapi.com/rapid/latest/BND',
-    headers: {
-      'X-RapidAPI-Key': 'b153ec2390mshd951f51c0f4316cp1055d0jsn0901c8c5965e',
-      'X-RapidAPI-Host': 'exchangerate-api.p.rapidapi.com'
-    }
-  };
-  
-  axios.request(options).then(function (response) {
-    console.log(response.data.rates.USD);
-    const usd = response.data.rates.USD;
-    const twd = response.data.rates.TWD;
-    const myr = response.data.rates.MYR;
-    
-    res.render("index.ejs", {usd, twd, myr})
-  }).catch(function (error) {
-    console.error(error);
-  });
-  
-})
-
 
 app.post("/payment", async (req, res) => {
   const { 
@@ -155,7 +128,6 @@ app.post("/payment", async (req, res) => {
   const email = req.user.email;
   const phone = req.user.phone;
   const merchant_id = req.user.merchant_id;
-  console.log("User is " + user)
   try {
     let transaction = new Transaction({ 
       name : user, 
