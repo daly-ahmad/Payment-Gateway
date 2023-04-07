@@ -51,9 +51,6 @@ app.use(passport.session());
 //using files in public folder
 app.use(express.static(__dirname + '/public'));
 
-//API Testing currency exchange
-
-
 //set name into session post login
 app.use(function(req, res, next) {
   if (req.user){
@@ -108,7 +105,7 @@ app.get("/", requireLogin, (req, res) => {
     method: 'GET',
     url: 'https://exchangerate-api.p.rapidapi.com/rapid/latest/BND',
     headers: {
-      'X-RapidAPI-Key': 'b153ec2390mshd951f51c0f4316cp1055d0jsn0901c8c5965e',
+      'X-RapidAPI-Key': process.env.RAPIDAPI_KEY_XCHANGE,
       'X-RapidAPI-Host': 'exchangerate-api.p.rapidapi.com'
     }
   };
