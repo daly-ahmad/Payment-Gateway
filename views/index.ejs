@@ -81,9 +81,6 @@
       document.getElementById("finalAmount").value = (document.getElementById("amount").value * 1).toFixed(2);
     }
   }
-
-  
-
   function getFinalAmountOnChange(){
     document.getElementById("finalAmount").value = "";
     document.getElementById("finalAmount").value = (document.getElementById("amount").value * document.getElementById("currency").value).toFixed(2);
@@ -91,7 +88,18 @@
 
   function getAmount(){
     document.getElementById("amount").value = "";
-    document.getElementById("amount").value = (document.getElementById("finalAmount").value / document.getElementById("currency").value).toFixed(2);
+    if((document.getElementById("currency").value)==="USD"){
+      document.getElementById("amount").value = (document.getElementById("finalAmount").value / <%= usd%>).toFixed(2);
+    }
+    else if((document.getElementById("currency").value)==="TWD"){
+      document.getElementById("amount").value = (document.getElementById("finalAmount").value / <%= twd%>).toFixed(2);
+    }
+    else if((document.getElementById("currency").value)==="MYR"){
+      document.getElementById("amount").value = (document.getElementById("finalAmount").value / <%= myr%>).toFixed(2);
+    }
+    else {
+      document.getElementById("amount").value = (document.getElementById("finalAmount").value / 1).toFixed(2);
+    }
   }
 
   
