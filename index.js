@@ -18,6 +18,7 @@ const bcrypt = require("bcryptjs");
 
 //models
 const User = require("./models/user");
+const Transaction = require("./models/transaction");
 
 app.set("view-engine", "ejs")
 app.use(express.urlencoded({ extended: false }))
@@ -57,6 +58,7 @@ app.use(express.static(__dirname + '/public'));
 app.use(function(req, res, next) {
   if (req.user){
     res.locals.username = req.user;
+    console.log(req.user.name);
   }
   else{
     console.log("Not logged in")
@@ -101,17 +103,7 @@ app.use(override("_method"));
 
 
 
-app.get("/", (req, res) => {
-  res.render("index.ejs")
-})
-
-app.post("/", requireLogin, (req, res) => {
-  res.render("index.ejs")
-})
-
-app.get("/payment", (req, res) => {
-  //const axios = require("axios");
-  //https://rapidapi.com/exchangerateapi/api/exchangerate-api
+app.get("/", requireLogin, (req, res) => {
   const options = {
     method: 'GET',
     url: 'https://exchangerate-api.p.rapidapi.com/rapid/latest/BND',
@@ -122,17 +114,64 @@ app.get("/payment", (req, res) => {
   };
   
   axios.request(options).then(function (response) {
-    console.log(response.data.rates.TWD);
+    console.log(response.data.rates.USD);
+    const usd = response.data.rates.USD;
+    const twd = response.data.rates.TWD;
+    const myr = response.data.rates.MYR;
+    console.log("User is " + req.user.name)
+    res.render("index.ejs", {usd, twd, myr})
   }).catch(function (error) {
     console.error(error);
   });
-    res.render("payment.ejs", )
 })
 
-app.post("/payment", (req, res) => {
-  const { order_id, amount } = req.body;
-  //res.render("payment.ejs", {order_id: order_id, amount: amount})
-  //var axios = require("axios").default;
+app.post("/", requireLogin, (req, res) => {
+  const options = {
+    method: 'GET',
+    url: 'https://exchangerate-api.p.rapidapi.com/rapid/latest/BND',
+    headers: {
+      'X-RapidAPI-Key': 'b153ec2390mshd951f51c0f4316cp1055d0jsn0901c8c5965e',
+      'X-RapidAPI-Host': 'exchangerate-api.p.rapidapi.com'
+    }
+  };
+  
+  axios.request(options).then(function (response) {
+    console.log(response.data.rates.USD);
+    const usd = response.data.rates.USD;
+    const twd = response.data.rates.TWD;
+    const myr = response.data.rates.MYR;
+    
+    res.render("index.ejs", {usd, twd, myr})
+  }).catch(function (error) {
+    console.error(error);
+  });
+  
+})
+
+
+app.post("/payment", async (req, res) => {
+  const { 
+    order_id, 
+    finalAmount, 
+  } = req.body;
+  const user = req.user.name;
+  const email = req.user.email;
+  const phone = req.user.phone;
+  const merchant_id = req.user.merchant_id;
+  console.log("User is " + user)
+  try {
+    let transaction = new Transaction({ 
+      name : user, 
+      email : email, 
+      phone: phone,
+      merchant_id: merchant_id,
+      order_id,
+      amount : finalAmount,
+     });
+    await transaction.save();
+  } catch (error) {
+    console.log(error);
+  }
 
   var options = {
     method: 'POST',
@@ -140,12 +179,12 @@ app.post("/payment", (req, res) => {
     headers: {
     },
     data: {
-      user: 'jr75o562u3cahls0w30g8112',
-      apiToken: '423d369ef67626d819a5313132',
+      user: process.env.API_USER,
+      apiToken: process.env.API_TOKEN,
       returnUrl: '',
       action: '',
       order_id: order_id,
-      order_amount: amount,
+      order_amount: finalAmount,
       callbackUrl: ''
     }
   };
@@ -168,19 +207,23 @@ app.post("/register", async (req, res) => {
       name, 
       email, 
       password, 
+      phone,
       priv,
+      merchant_id,
     } = req.body;
     try {
       let user = await User.findOne({ email: req.body.email });
       if (user) {
-        return res.status(400).json({ error: "User already exists" });
+        return res.status(400).json({ error: "Email already used" });
       }
       const hashedPassword = await bcrypt.hash(password, 10);
       user = new User({ 
         name, 
         email, 
         password: hashedPassword,
+        phone,
         priv,
+        merchant_id,
        });
       await user.save();
       res.redirect("/login");

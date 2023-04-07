@@ -13,9 +13,15 @@ const userSchema = new mongoose.Schema(
         minLength: 6,
         select: false
     },
+    phone: {
+      type: String,
+    },
     priv: {
       type: String,
     },
+    merchant_id: {
+      type: String,
+    }
   },
   { timestamps: true }
 );

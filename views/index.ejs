@@ -20,12 +20,30 @@
               <tr>
                 <td><label>Order ID : </label></td>
                 <td></td>
-                <td><input type="text" name="order_id"></input></td>
+                <td><input type="text" name="order_id"/></td>
               </tr>
               <tr>
                 <td><label>Amount : </label></td>
                 <td></td>
-                <td><input type="text" name="amount"></input></td>
+                <td><input type="number" id="amount" name="amount" onkeyup="getFinalAmount()"/></td>
+                <td>
+                  <select id="currency" name="currency" onchange="getFinalAmountOnChange()">
+                    <option value="1">BND</option>
+                    <option value="<%= usd %>">USD</option>
+                    <option value="<%= twd %>" selected>TWD</option>
+                    <option value="<%= myr %>">MYR</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td><label>Amount (BND) : </label></td>
+                <td></td>
+                <td><input type="text" id="finalAmount" name="finalAmount" onkeyup="getAmount()"/></td>
+                <td>
+                  <select>
+                    <option name="bnd">BND</option>
+                  </select>
+                </td>
               </tr>
 
             </table>
@@ -41,7 +59,11 @@
         <br>
         <h2></h2>
       </div>
-      <div class="col-md-2"></div>
+      <div class="col-md-2" style="display:none">
+        <p><%= usd %></p>
+        <p><%= twd %></p>
+        <p><%= myr %></p>
+      </div>
       </div>
       </div>
 
@@ -53,14 +75,19 @@
 
 <script>
 
-  function getData(){
-    axios.get("https://jsonplaceholder.typicode.com/todos/1")
-    .then(function(response){
-      console.log(response);
-    })
-    .catch(function(error){
-      console.log(error);
-    })
+  function getFinalAmount(){
+    document.getElementById("finalAmount").value = "";
+    document.getElementById("finalAmount").value = (document.getElementById("amount").value * document.getElementById("currency").value).toFixed(2);
+  }
+
+  function getFinalAmountOnChange(){
+    document.getElementById("finalAmount").value = "";
+    document.getElementById("finalAmount").value = (document.getElementById("amount").value * document.getElementById("currency").value).toFixed(2);
+  }
+
+  function getAmount(){
+    document.getElementById("amount").value = "";
+    document.getElementById("amount").value = (document.getElementById("finalAmount").value / document.getElementById("currency").value).toFixed(2);
   }
 
   var tag = document.createElement('script');
