@@ -110,12 +110,53 @@ app.post("/", requireLogin, (req, res) => {
 })
 
 app.get("/payment", (req, res) => {
-  res.render("payment.ejs")
+  //const axios = require("axios");
+  //https://rapidapi.com/exchangerateapi/api/exchangerate-api
+  const options = {
+    method: 'GET',
+    url: 'https://exchangerate-api.p.rapidapi.com/rapid/latest/BND',
+    headers: {
+      'X-RapidAPI-Key': 'b153ec2390mshd951f51c0f4316cp1055d0jsn0901c8c5965e',
+      'X-RapidAPI-Host': 'exchangerate-api.p.rapidapi.com'
+    }
+  };
+  
+  axios.request(options).then(function (response) {
+    console.log(response.data.rates.TWD);
+  }).catch(function (error) {
+    console.error(error);
+  });
+    res.render("payment.ejs", )
 })
 
 app.post("/payment", (req, res) => {
   const { order_id, amount } = req.body;
-  res.render("payment.ejs", {order_id: order_id, amount: amount})
+  //res.render("payment.ejs", {order_id: order_id, amount: amount})
+  //var axios = require("axios").default;
+
+  var options = {
+    method: 'POST',
+    url: 'https://pay.beep.solutions/generateorder',
+    headers: {
+    },
+    data: {
+      user: 'jr75o562u3cahls0w30g8112',
+      apiToken: '423d369ef67626d819a5313132',
+      returnUrl: '',
+      action: '',
+      order_id: order_id,
+      order_amount: amount,
+      callbackUrl: ''
+    }
+  };
+
+  axios.request(options).then(function (response) {
+    console.log(response.data.result.Token);
+    var orderToken = response.data.result.Token;
+    res.redirect("https://pay.beep.solutions/order?Token=" + orderToken);
+  }).catch(function (error) {
+    console.error(error);
+  });
 })
 
 app.get("/register", requireAdmin, (req, res) => {
