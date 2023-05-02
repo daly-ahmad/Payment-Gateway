@@ -15,7 +15,7 @@
       <div class="col-md-4"></div>
       <div class="col-md-4">
         <div class="container" style="margin-top: 50px; padding: 10px; border: solid 1px black">
-          <form method="POST" action="/payment">
+          <form method="POST" action="/pocketpayment">
             <table>
               <tr>
                 <td><label>Order ID : </label></td>
@@ -69,16 +69,16 @@
   function getFinalAmount(){
     document.getElementById("finalAmount").value = "";
     if((document.getElementById("currency").value)==="USD"){
-      document.getElementById("finalAmount").value = (document.getElementById("amount").value * <%= usd%>).toFixed(2);
+      document.getElementById("finalAmount").value = (document.getElementById("amount").value / <%= usd%>).toFixed(2);
     }
     else if((document.getElementById("currency").value)==="TWD"){
-      document.getElementById("finalAmount").value = (document.getElementById("amount").value * <%= twd%>).toFixed(2);
+      document.getElementById("finalAmount").value = (document.getElementById("amount").value / <%= twd%>).toFixed(2);
     }
     else if((document.getElementById("currency").value)==="MYR"){
-      document.getElementById("finalAmount").value = (document.getElementById("amount").value * <%= myr%>).toFixed(2);
+      document.getElementById("finalAmount").value = (document.getElementById("amount").value / <%= myr%>).toFixed(2);
     }
     else {
-      document.getElementById("finalAmount").value = (document.getElementById("amount").value * 1).toFixed(2);
+      document.getElementById("finalAmount").value = (document.getElementById("amount").value / 1).toFixed(2);
     }
   }
   function getFinalAmountOnChange(){
@@ -89,16 +89,16 @@
   function getAmount(){
     document.getElementById("amount").value = "";
     if((document.getElementById("currency").value)==="USD"){
-      document.getElementById("amount").value = (document.getElementById("finalAmount").value / <%= usd%>).toFixed(2);
+      document.getElementById("amount").value = (document.getElementById("finalAmount").value * <%= usd%>).toFixed(2);
     }
     else if((document.getElementById("currency").value)==="TWD"){
-      document.getElementById("amount").value = (document.getElementById("finalAmount").value / <%= twd%>).toFixed(2);
+      document.getElementById("amount").value = (document.getElementById("finalAmount").value * <%= twd%>).toFixed(2);
     }
     else if((document.getElementById("currency").value)==="MYR"){
-      document.getElementById("amount").value = (document.getElementById("finalAmount").value / <%= myr%>).toFixed(2);
+      document.getElementById("amount").value = (document.getElementById("finalAmount").value * <%= myr%>).toFixed(2);
     }
     else {
-      document.getElementById("amount").value = (document.getElementById("finalAmount").value / 1).toFixed(2);
+      document.getElementById("amount").value = (document.getElementById("finalAmount").value * 1).toFixed(2);
     }
   }
 

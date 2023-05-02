@@ -171,6 +171,104 @@ app.post("/payment", async (req, res) => {
   });
 })
 
+//pocketAPI
+app.post("/pocketpayment", async (req, res) => {
+  const { 
+    order_id, 
+    amount,
+    currency,
+    finalAmount, 
+  } = req.body;
+  const user = req.user.name;
+  const email = req.user.email;
+  const phone = req.user.phone;
+  const merchant_id = req.user.merchant_id;
+  try {
+    let transaction = new Transaction({ 
+      name : user, 
+      email : email, 
+      phone: phone,
+      merchant_id: merchant_id,
+      order_id,
+      amount : amount,
+      currency : currency,
+      amount_bnd : finalAmount,
+     });
+    await transaction.save();
+  } catch (error) {
+    console.log(error);
+  }
+
+  var pocket_get_hash = {
+    method: 'POST',
+    url: 'https://pay.threeg.asia/payments/hash',
+    headers: {
+    },
+    data: {
+      api_key: process.env.POCKET_KEY,
+      salt : process.env.POCKET_SALT,
+      "order_id" : "123456677881231",
+      "order_desc" : "Description",
+      "order_info" : "This is the order info",
+      "subamount_1" : finalAmount,
+      "subamount_1_label" : "Order Total (BND)",
+      "subamount_2" : "0",
+      "subamount_3" : "0",
+      "subamount_4" : "0",
+      "subamount_5" : "0",
+      "discount" : "0",
+      "return_url" : "https://www.bing.com"
+    }
+  };
+
+  var options2 = {
+    method: 'POST',
+    url: 'https://pay.threeg.asia/payments/create',
+    headers: {
+    },
+    data: {
+      "api_key": process.env.POCKET_KEY,
+      "salt" : process.env.POCKET_SALT,
+      "hashed_data": "2eafc58eedc5ddcbd7fa4c1cda2998cbda54e8b3ce6be235d2928648da9d1cca",
+      "order_id" : "123456677881231",
+      "order_desc" : "Description",
+      "order_info" : "This is the order info",
+      "subamount_1" : finalAmount,
+      "subamount_1_label" : "Order Total (BND)",
+      "subamount_2" : "0",
+      "subamount_3" : "0",
+      "subamount_4" : "0",
+      "subamount_5" : "0",
+      "discount" : "0",
+      "return_url" : "https://www.bing.com"
+      
+    }
+  };
+
+  
+  var pocket_hashed_data;
+  await axios.request(pocket_get_hash).then(function (response) {
+    console.log("My hashed data is " + response.data.hashed_data);
+    pocket_hashed_data = response.data.hashed_data;
+    return pocket_hashed_data;
+  })
+  .catch(function (error) {
+    console.error(error);
+  });
+
+  axios.request(options2).then(function (response) {
+    console.log("Payment_url is " + response.data.payment_url);
+    console.log("Success_indicator is " + response.data.success_indicator);
+    console.log("Order_ref is " + response.data.order_ref);
+    console.log("Hashed Data is " + pocket_hashed_data);
+    console.log("Message is " + response.data.message);
+    res.redirect(payment_url);
+  }).catch(function (error) {
+    console.error(error);
+  });
+  
+})
+
 app.get("/register", requireAdmin, (req, res) => {
     res.render("register.ejs")
 })
