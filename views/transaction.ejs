@@ -1,0 +1,44 @@
+<title>Transactions</title>
+
+<head>
+  <%- include('partials/dashboard'); %>
+</head>
+<body style="margin-bottom: 600px;">
+    <div class="container-fluid">
+        <h1>Your transactions</h1>
+        
+          <table class="table table-striped table-sm table-bordered">
+            <tr>
+                <th scope="row" style="display: none">_id</th>
+                <td>Name</th>
+                <td>Order ID</td>
+                <td>Amount</td>
+                <td>Amount (BND)</td>
+                <td>Status</td>
+                <td></td>
+            </tr>
+            <% if (pocket_transaction) { %>
+                <% for (var i = 0; i < pocket_transaction.length; i++) { %>
+                  <form action="/edit/<%= pocket_transaction[i]._id %>" method="POST">
+                    <tr>
+                      <td style="display: none"><input type="text" name="_id" value="<%= pocket_transaction[i]._id %>" readonly/></td>
+                      <td><input type="text" name="name" value="<%= pocket_transaction[i].name %>"/></td>
+                      <td><input type="text" name="email" value="<%= pocket_transaction[i].order_id %>"/></td>
+                      <td><input type="text" name="phone" value="<%= pocket_transaction[i].amount %> (<%= pocket_transaction[i].currency %>)"/></td>
+                      <td><input type="text" name="priv" value="<%= pocket_transaction[i].amount_bnd %>"/></td>
+                      <td><input type="text" name="merchant_id" value="<%= pocket_transaction[i].status_id %>"/></td>
+                    </tr>
+                  </form>
+                <% } %>
+          <% } %>
+        </table>
+        
+          
+        
+        </div>
+
+</body>
+
+<footer>
+  <%- include('partials/footer'); %>
+</footer>

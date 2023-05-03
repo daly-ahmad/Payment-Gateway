@@ -19,6 +19,7 @@ const bcrypt = require("bcryptjs");
 //models
 const User = require("./models/user");
 const Transaction = require("./models/transaction");
+const Pocket_Transaction = require("./models/pocket_transaction");
 
 app.set("view-engine", "ejs")
 app.use(express.urlencoded({ extended: false }))
@@ -119,85 +120,87 @@ app.get("/", requireLogin, (req, res) => {
   });
 })
 
-app.post("/payment", async (req, res) => {
-  const { 
-    order_id, 
-    amount,
-    currency,
-    finalAmount, 
-  } = req.body;
-  const user = req.user.name;
-  const email = req.user.email;
-  const phone = req.user.phone;
-  const merchant_id = req.user.merchant_id;
-  try {
-    let transaction = new Transaction({ 
-      name : user, 
-      email : email, 
-      phone: phone,
-      merchant_id: merchant_id,
-      order_id,
-      amount : amount,
-      currency : currency,
-      amount_bnd : finalAmount,
-     });
-    await transaction.save();
-  } catch (error) {
-    console.log(error);
-  }
+// app.post("/payment", async (req, res) => {
+//   const { 
+//     order_id, 
+//     amount,
+//     currency,
+//     finalAmount, 
+//   } = req.body;
+//   const user = req.user.name;
+//   const email = req.user.email;
+//   const phone = req.user.phone;
+//   const merchant_id = req.user.merchant_id;
+//   try {
+//     let transaction = new Transaction({ 
+//       name : user, 
+//       email : email, 
+//       phone: phone,
+//       merchant_id: merchant_id,
+//       order_id,
+//       amount : amount,
+//       currency : currency,
+//       amount_bnd : finalAmount,
+//      });
+//     await transaction.save();
+//   } catch (error) {
+//     console.log(error);
+//   }
 
-  var options = {
-    method: 'POST',
-    url: 'https://pay.beep.solutions/generateorder',
-    headers: {
-    },
-    data: {
-      user: process.env.API_USER,
-      apiToken: process.env.API_TOKEN,
-      returnUrl: '',
-      action: '',
-      order_id: order_id,
-      order_amount: finalAmount,
-      callbackUrl: ''
-    }
-  };
+//   var options = {
+//     method: 'POST',
+//     url: 'https://pay.beep.solutions/generateorder',
+//     headers: {
+//     },
+//     data: {
+//       user: process.env.API_USER,
+//       apiToken: process.env.API_TOKEN,
+//       returnUrl: '',
+//       action: '',
+//       order_id: order_id,
+//       order_amount: finalAmount,
+//       callbackUrl: ''
+//     }
+//   };
 
-  axios.request(options).then(function (response) {
-    console.log(response.data.result.Token);
-    var orderToken = response.data.result.Token;
-    res.redirect("https://pay.beep.solutions/order?Token=" + orderToken);
-  }).catch(function (error) {
-    console.error(error);
-  });
-})
+//   axios.request(options).then(function (response) {
+//     console.log(response.data.result.Token);
+//     var orderToken = response.data.result.Token;
+//     res.redirect("https://pay.beep.solutions/order?Token=" + orderToken);
+//   }).catch(function (error) {
+//     console.error(error);
+//   });
+// })
 
 //pocketAPI
 app.post("/pocketpayment", async (req, res) => {
   const { 
-    order_id, 
     amount,
     currency,
-    finalAmount, 
   } = req.body;
+  const poc_trans = await Pocket_Transaction.find({});
+  const order_id = poc_trans.length +1;
+  //const order_id = poc_trans.length;
+  const initialAmount = req.body.finalAmount //convert to cent
+  const finalAmount = (Number(req.body.finalAmount) + Number(req.body.finalAmount  * 0.03))*100; //convert to cent
+  const finalfinalAmount = parseFloat(finalAmount).toFixed(2);
   const user = req.user.name;
   const email = req.user.email;
   const phone = req.user.phone;
   const merchant_id = req.user.merchant_id;
-  try {
-    let transaction = new Transaction({ 
-      name : user, 
-      email : email, 
-      phone: phone,
-      merchant_id: merchant_id,
-      order_id,
-      amount : amount,
-      currency : currency,
-      amount_bnd : finalAmount,
-     });
-    await transaction.save();
-  } catch (error) {
-    console.log(error);
-  }
+  //const order_id_status = 0;
+
+  var pocket_hashed_data;
+  let current_date = new Date();
+  let day = ("0" + current_date.getDate()).slice(-2);
+  let month = ("0" + (current_date.getMonth() + 1)).slice(-2);
+  let year = current_date.getFullYear();
+  let hours = current_date.getHours();
+  let minutes = current_date.getMinutes();
+
+  var order_info = "Order made by " + req.user.name + " at " + day + "/" + month + "/" + year + ", " + hours + ":" + minutes;
+
+
 
   var pocket_get_hash = {
     method: 'POST',
@@ -207,48 +210,25 @@ app.post("/pocketpayment", async (req, res) => {
     data: {
       api_key: process.env.POCKET_KEY,
       salt : process.env.POCKET_SALT,
-      "order_id" : "123456677881231",
+      "order_id" : order_id,
       "order_desc" : "Description",
-      "order_info" : "This is the order info",
-      "subamount_1" : finalAmount,
+      "order_info" : order_info,
+      "subamount_1" : finalfinalAmount,
       "subamount_1_label" : "Order Total (BND)",
       "subamount_2" : "0",
       "subamount_3" : "0",
       "subamount_4" : "0",
       "subamount_5" : "0",
       "discount" : "0",
-      "return_url" : "https://www.bing.com"
-    }
-  };
-
-  var options2 = {
-    method: 'POST',
-    url: 'https://pay.threeg.asia/payments/create',
-    headers: {
-    },
-    data: {
-      "api_key": process.env.POCKET_KEY,
-      "salt" : process.env.POCKET_SALT,
-      "hashed_data": "2eafc58eedc5ddcbd7fa4c1cda2998cbda54e8b3ce6be235d2928648da9d1cca",
-      "order_id" : "123456677881231",
-      "order_desc" : "Description",
-      "order_info" : "This is the order info",
-      "subamount_1" : finalAmount,
-      "subamount_1_label" : "Order Total (BND)",
-      "subamount_2" : "0",
-      "subamount_3" : "0",
-      "subamount_4" : "0",
-      "subamount_5" : "0",
-      "discount" : "0",
-      "return_url" : "https://www.bing.com"
-      
+      "return_url" : "http://localhost:3000/status"
     }
   };
 
   
-  var pocket_hashed_data;
+  
   await axios.request(pocket_get_hash).then(function (response) {
     console.log("My hashed data is " + response.data.hashed_data);
+    console.log("Poc trans length is " + order_id);
     pocket_hashed_data = response.data.hashed_data;
     return pocket_hashed_data;
   })
@@ -256,16 +236,86 @@ app.post("/pocketpayment", async (req, res) => {
     console.error(error);
   });
 
-  axios.request(options2).then(function (response) {
-    console.log("Payment_url is " + response.data.payment_url);
-    console.log("Success_indicator is " + response.data.success_indicator);
-    console.log("Order_ref is " + response.data.order_ref);
-    console.log("Hashed Data is " + pocket_hashed_data);
-    console.log("Message is " + response.data.message);
-    res.redirect(payment_url);
-  }).catch(function (error) {
-    console.error(error);
-  });
+  function submit_payment() {
+    
+    console.log("Most likely because Hashed Data is " + pocket_hashed_data);
+
+    var options2 = {
+      method: 'POST',
+      url: 'https://pay.threeg.asia/payments/create',
+      headers: {
+      },
+      data: {
+        "api_key": process.env.POCKET_KEY,
+        "salt" : process.env.POCKET_SALT,
+        "hashed_data": pocket_hashed_data,
+        "order_id" : order_id,
+        "order_desc" : "Description",
+        "order_info" : order_info,
+        "subamount_1" : finalfinalAmount,
+        "subamount_1_label" : "Order Total (BND)",
+        "subamount_2" : "0",
+        "subamount_3" : "0",
+        "subamount_4" : "0",
+        "subamount_5" : "0",
+        "discount" : "0",
+        "return_url" : "http://localhost:3000/status"
+        
+      }
+    };
+
+    axios.request(options2).then(function (response) {
+      if(response.data.payment_url == "undefined"){
+        console.log("Message is " + response.data.message);
+        console.log("Most likely because Hashed Data is " + pocket_hashed_data);
+  
+        res.redirect("index.ejs");
+      }
+      else{
+        console.log("Payment_url is " + response.data.payment_url);
+        console.log("Success_indicator is " + response.data.success_indicator);
+        console.log("Order_ref is " + response.data.order_ref);
+        console.log("Order_info is " + order_info);
+        console.log("Hashed Data is still " + pocket_hashed_data);
+  
+        let pocket_transaction = new Pocket_Transaction({ 
+          name : user, 
+          email : email, 
+          phone: phone,
+          merchant_id: merchant_id,
+          order_id : order_id,
+          amount : amount,
+          currency : currency,
+          amount_bnd : initialAmount,
+          order_info : order_info,
+          transaction_hashed_data : pocket_hashed_data,
+          order_id_status: "0"
+         });
+
+        pocket_transaction.save();
+        res.redirect(response.data.payment_url);
+      }
+    }).catch(function (error) {
+      console.error(error);
+    });
+  }
+  //4388 0812 3456 7890
+  //EXP : 12/25
+  //CVV : 321
+  function get_hash() {
+    axios.request(pocket_get_hash).then(function (response) {
+      console.log("My hashed data is " + response.data.hashed_data);
+      pocket_hashed_data = response.data.hashed_data;
+      return pocket_hashed_data;
+
+      
+    })
+    
+    submit_payment();
+  }
+  //get_hash();
+  submit_payment();
+  
   
 })
 
@@ -355,6 +405,12 @@ app.post("/delete/:_id", async (req, res) => {
     console.log("redirecting from deleting user")
     res.redirect("/edit");
 });
+
+app.get("/transaction", requireLogin, async (req, res) => {
+  const pocket_transaction = await Pocket_Transaction.find({});
+  res.render("transaction.ejs", { pocket_transaction: pocket_transaction })
+  
+})
 
 //unfinished pages
 app.get("/wip", requireLogin, (req, res) => {
