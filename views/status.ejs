@@ -1,0 +1,40 @@
+<title>Transactions</title>
+
+<head>
+  <%- include('partials/dashboard'); %>
+</head>
+<body style="margin-bottom: 600px;">
+    <div class="container-fluid">
+        <h1>Transaction status</h1>
+        
+          <table class="table table-striped table-sm table-bordered">
+            <tr>
+                <th scope="row" style="display: none">_id</th>
+                <td>Name</th>
+                <td>Method</td>
+                <td>Order ID</td>
+                <td>Amount (BND)</td>
+                <td>Status</td>
+                <td></td>
+            </tr>
+                  <form action="/edit" method="POST">
+                    <tr>
+                      <td style="display: none"><input type="text" name="_id" value="" readonly/></td>
+                      <td><input type="text" name="name" value="<%= username.name %>"/></td>
+                      <td><input type="text" name="method" value="<%= method %>"/></td>
+                      <td><input type="text" name="order_id" value="<%= order_id %>"/></td>
+                      <td><input type="text" name="final_amount" value="<%= final_amount %>"/></td>
+                      <td><input type="text" name="status_result" value="<%= status_result %>"/></td>
+                    </tr>
+                  </form>
+        </table>
+        
+          
+        
+        </div>
+
+</body>
+
+<footer>
+  <%- include('partials/footer'); %>
+</footer>

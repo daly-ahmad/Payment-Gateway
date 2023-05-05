@@ -199,7 +199,7 @@ app.post("/pocketpayment", async (req, res) => {
   let minutes = current_date.getMinutes();
 
   var order_info = "Order made by " + req.user.name + " at " + day + "/" + month + "/" + year + ", " + hours + ":" + minutes;
-
+  var return_url = "http://localhost:3000/status/:" + order_id;
 
 
   var pocket_get_hash = {
@@ -210,7 +210,7 @@ app.post("/pocketpayment", async (req, res) => {
     data: {
       api_key: process.env.POCKET_KEY,
       salt : process.env.POCKET_SALT,
-      "order_id" : order_id,
+      "order_id" : 30,
       "order_desc" : "Description",
       "order_info" : order_info,
       "subamount_1" : finalfinalAmount,
@@ -220,7 +220,7 @@ app.post("/pocketpayment", async (req, res) => {
       "subamount_4" : "0",
       "subamount_5" : "0",
       "discount" : "0",
-      "return_url" : "http://localhost:3000/status"
+      "return_url" : return_url
     }
   };
 
@@ -249,7 +249,7 @@ app.post("/pocketpayment", async (req, res) => {
         "api_key": process.env.POCKET_KEY,
         "salt" : process.env.POCKET_SALT,
         "hashed_data": pocket_hashed_data,
-        "order_id" : order_id,
+        "order_id" : 30,
         "order_desc" : "Description",
         "order_info" : order_info,
         "subamount_1" : finalfinalAmount,
@@ -259,13 +259,13 @@ app.post("/pocketpayment", async (req, res) => {
         "subamount_4" : "0",
         "subamount_5" : "0",
         "discount" : "0",
-        "return_url" : "http://localhost:3000/status"
+        "return_url" : return_url
         
       }
     };
 
     axios.request(options2).then(function (response) {
-      if(response.data.payment_url == "undefined"){
+      if(response.data.payment_url === "undefined"){
         console.log("Message is " + response.data.message);
         console.log("Most likely because Hashed Data is " + pocket_hashed_data);
   
@@ -321,6 +321,53 @@ app.post("/pocketpayment", async (req, res) => {
 
 app.get("/register", requireAdmin, (req, res) => {
     res.render("register.ejs")
+})
+
+app.get("/status/:order_id", requireAdmin, async (req, res) => {
+  var status_result;
+  var method;
+  var final_amount;
+  var order_id = req.params.order_id;
+  var neworder_id = order_id.replace(':', '');
+  
+  var check_status = {
+    method: 'POST',
+    url: 'https://pay.threeg.asia/payments/status',
+    headers: {
+    },
+    data: {
+      "api_key": process.env.POCKET_KEY,
+      "salt" : process.env.POCKET_SALT,
+      "order_id" : neworder_id,
+    }
+  };
+
+  await axios.request(check_status).then(function (response) {
+    method = response.data.method;
+    final_amount = response.data.final_amount;
+    
+    if(response.data.status_id == 0) {
+      status_result = "Pending";
+      console.log("Status_id of order " + neworder_id + " is " + response.data.status_id + "/" + status_result + " @ BND " + response.data.final_amount);
+    }
+    else if (response.data.status_id == 1) {
+      status_result = "Paid";
+      console.log("Status_id of order " + neworder_id + " is " + response.data.status_id + "/" + status_result);
+    }
+    else if (response.data.status_id == 2) {
+      status_result = "Refunded";
+      console.log("Status_id of order " + neworder_id + " is " + response.data.status_id + "/" + status_result);
+    }
+    else {
+      status_result = "???";
+      console.log("Status_id of order " + neworder_id + " is " + response.data.status_id + "/" + status_result);
+    }
+    
+
+    
+  })
+
+  res.render("status.ejs", {status_result:status_result, order_id:neworder_id, method:method, final_amount:final_amount})
 })
 
 app.post("/register", async (req, res) => {
@@ -408,6 +455,31 @@ app.post("/delete/:_id", async (req, res) => {
 
 app.get("/transaction", requireLogin, async (req, res) => {
   const pocket_transaction = await Pocket_Transaction.find({});
+
+  
+  function get_hash() {
+    axios.request(pocket_get_hash).then(function (response) {
+      console.log("My hashed data is " + response.data.hashed_data);
+      pocket_hashed_data = response.data.hashed_data;
+      return pocket_hashed_data;
+
+      
+    })
+    
+  }
+
+  var options2 = {
+    method: 'POST',
+    url: 'https://pay.threeg.asia/payments/create',
+    headers: {
+    },
+    data: {
+      "api_key": process.env.POCKET_KEY,
+      "salt" : process.env.POCKET_SALT,
+      "order_id" : pocket_transaction.order_id,
+      }
+  };
+
   res.render("transaction.ejs", { pocket_transaction: pocket_transaction })
   
 })
