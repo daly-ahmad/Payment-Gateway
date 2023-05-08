@@ -120,66 +120,23 @@ app.get("/", requireLogin, (req, res) => {
   });
 })
 
-// app.post("/payment", async (req, res) => {
-//   const { 
-//     order_id, 
-//     amount,
-//     currency,
-//     finalAmount, 
-//   } = req.body;
-//   const user = req.user.name;
-//   const email = req.user.email;
-//   const phone = req.user.phone;
-//   const merchant_id = req.user.merchant_id;
-//   try {
-//     let transaction = new Transaction({ 
-//       name : user, 
-//       email : email, 
-//       phone: phone,
-//       merchant_id: merchant_id,
-//       order_id,
-//       amount : amount,
-//       currency : currency,
-//       amount_bnd : finalAmount,
-//      });
-//     await transaction.save();
-//   } catch (error) {
-//     console.log(error);
-//   }
-
-//   var options = {
-//     method: 'POST',
-//     url: 'https://pay.beep.solutions/generateorder',
-//     headers: {
-//     },
-//     data: {
-//       user: process.env.API_USER,
-//       apiToken: process.env.API_TOKEN,
-//       returnUrl: '',
-//       action: '',
-//       order_id: order_id,
-//       order_amount: finalAmount,
-//       callbackUrl: ''
-//     }
-//   };
-
-//   axios.request(options).then(function (response) {
-//     console.log(response.data.result.Token);
-//     var orderToken = response.data.result.Token;
-//     res.redirect("https://pay.beep.solutions/order?Token=" + orderToken);
-//   }).catch(function (error) {
-//     console.error(error);
-//   });
-// })
-
 //pocketAPI
 app.post("/pocketpayment", async (req, res) => {
   const { 
+    name,
+    telephone,
     amount,
     currency,
   } = req.body;
   const poc_trans = await Pocket_Transaction.find({});
-  const order_id = poc_trans.length +1;
+  var order_id;
+  if(poc_trans.length){
+    order_id = poc_trans.length +1;
+  }
+  else {
+    order_id = 1;
+  }
+  //const order_id = poc_trans.length +1;
   //const order_id = poc_trans.length;
   const initialAmount = req.body.finalAmount //convert to cent
   const finalAmount = (Number(req.body.finalAmount) + Number(req.body.finalAmount  * 0.03))*100; //convert to cent
@@ -198,8 +155,8 @@ app.post("/pocketpayment", async (req, res) => {
   let hours = current_date.getHours();
   let minutes = current_date.getMinutes();
 
-  var order_info = "Order made by " + req.user.name + " at " + day + "/" + month + "/" + year + ", " + hours + ":" + minutes;
-  var return_url = "http://localhost:3000/status/:" + order_id;
+  var order_info = day + "/" + month + "/" + year + ", " + hours + ":" + minutes;
+  var return_url = "https://gorush-payment-gateway.herokuapp.com/status/:" + order_id;
 
 
   var pocket_get_hash = {
@@ -210,7 +167,7 @@ app.post("/pocketpayment", async (req, res) => {
     data: {
       api_key: process.env.POCKET_KEY,
       salt : process.env.POCKET_SALT,
-      "order_id" : 30,
+      "order_id" : order_id,
       "order_desc" : "Description",
       "order_info" : order_info,
       "subamount_1" : finalfinalAmount,
@@ -236,9 +193,19 @@ app.post("/pocketpayment", async (req, res) => {
     console.error(error);
   });
 
+  function set_order_id() {
+    var order_id;
+    if(poc_trans.length){
+      order_id = poc_trans.length +1;
+    }
+    else {
+      order_id = 1;
+    }
+  }
+
   function submit_payment() {
-    
-    console.log("Most likely because Hashed Data is " + pocket_hashed_data);
+    set_order_id();
+    console.log("Most likely because Hashed Data is " + pocket_hashed_data + " and order_id is " + order_id);
 
     var options2 = {
       method: 'POST',
@@ -249,7 +216,7 @@ app.post("/pocketpayment", async (req, res) => {
         "api_key": process.env.POCKET_KEY,
         "salt" : process.env.POCKET_SALT,
         "hashed_data": pocket_hashed_data,
-        "order_id" : 30,
+        "order_id" : order_id,
         "order_desc" : "Description",
         "order_info" : order_info,
         "subamount_1" : finalfinalAmount,
@@ -279,9 +246,9 @@ app.post("/pocketpayment", async (req, res) => {
         console.log("Hashed Data is still " + pocket_hashed_data);
   
         let pocket_transaction = new Pocket_Transaction({ 
-          name : user, 
+          name : name, 
           email : email, 
-          phone: phone,
+          phone: telephone,
           merchant_id: merchant_id,
           order_id : order_id,
           amount : amount,
@@ -315,7 +282,6 @@ app.post("/pocketpayment", async (req, res) => {
   }
   //get_hash();
   submit_payment();
-  
   
 })
 
@@ -362,13 +328,11 @@ app.get("/status/:order_id", requireAdmin, async (req, res) => {
       status_result = "???";
       console.log("Status_id of order " + neworder_id + " is " + response.data.status_id + "/" + status_result);
     }
-    
-
-    
   })
 
   res.render("status.ejs", {status_result:status_result, order_id:neworder_id, method:method, final_amount:final_amount})
 })
+
 
 app.post("/register", async (req, res) => {
     const { 
@@ -455,34 +419,85 @@ app.post("/delete/:_id", async (req, res) => {
 
 app.get("/transaction", requireLogin, async (req, res) => {
   const pocket_transaction = await Pocket_Transaction.find({});
-
+  var newstatus= [];
   
-  function get_hash() {
-    axios.request(pocket_get_hash).then(function (response) {
-      console.log("My hashed data is " + response.data.hashed_data);
-      pocket_hashed_data = response.data.hashed_data;
-      return pocket_hashed_data;
-
-      
-    })
+  for (var i = 0; i < pocket_transaction.length; i++){
+    var order_id = pocket_transaction[i].order_id;
+    var check_status = {
     
-  }
-
-  var options2 = {
-    method: 'POST',
-    url: 'https://pay.threeg.asia/payments/create',
-    headers: {
-    },
-    data: {
-      "api_key": process.env.POCKET_KEY,
-      "salt" : process.env.POCKET_SALT,
-      "order_id" : pocket_transaction.order_id,
+      method: 'POST',
+      url: 'https://pay.threeg.asia/payments/status',
+      headers: {
+      },
+      data: {
+        "api_key": process.env.POCKET_KEY,
+        "salt" : process.env.POCKET_SALT,
+        "order_id" : order_id,
       }
-  };
+    }
 
-  res.render("transaction.ejs", { pocket_transaction: pocket_transaction })
+    await axios.request(check_status).then(function (response) {
+      console.log("At i = " + i + ", order_id = " + order_id + ", status id = " + response.data.status_id + ", order status id = " + pocket_transaction[i].order_id_status);
+      newstatus[i] = response.data.status_id;
+      Pocket_Transaction.updateMany({ 
+        order_id:order_id,
+        },
+        {
+        $set: {
+          order_id_status:newstatus
+        },
+        },
+        {
+          upsert: true, new: true,
+        }
+      )
+    })
+  }
+  res.render("transaction.ejs", {pocket_transaction: pocket_transaction, newstatus: newstatus})
   
 })
+
+//post one
+// app.post("/transaction", requireLogin, async (req, res) => {
+//   const pocket_transaction = await Pocket_Transaction.find({});
+
+//   var newstatus = [];
+
+//   for (var i = 0; i < pocket_transaction.length; i++){
+//     var order_id = pocket_transaction[i].order_id;
+//     var check_status = {
+    
+//       method: 'POST',
+//       url: 'https://pay.threeg.asia/payments/status',
+//       headers: {
+//       },
+//       data: {
+//         "api_key": process.env.POCKET_KEY,
+//         "salt" : process.env.POCKET_SALT,
+//         "order_id" : order_id,
+//       }
+//     }
+
+//     await axios.request(check_status).then(function (response) {
+//       console.log("At i = " + i + ", order_id = " + order_id + ", status id = " + response.data.status_id + ", order id status = " + pocket_transaction[i].order_id_status);
+//       newstatus[i] = response.data.status_id;
+//       Pocket_Transaction.updateOne({ 
+//         order_id:order_id,
+//         },
+//         {
+//         $set: {
+//           order_id_status:response.data.status_id
+//         },
+//         },
+//         {
+//           upsert: true
+//         }
+//       )
+//     })
+//   }
+//   res.render("transaction.ejs", {pocket_transaction: pocket_transaction, newstatus: newstatus})
+  
+// })
 
 //unfinished pages
 app.get("/wip", requireLogin, (req, res) => {

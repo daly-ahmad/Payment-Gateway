@@ -32,7 +32,7 @@ const pocket_transactionSchema = new mongoose.Schema(
     order_info: {
         type: String,
     },
-    order_status_id: {
+    order_id_status: {
         type: String,
     }
   },
