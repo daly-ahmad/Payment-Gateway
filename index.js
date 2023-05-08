@@ -417,7 +417,7 @@ app.post("/delete/:_id", async (req, res) => {
     res.redirect("/edit");
 });
 
-app.get("/transaction", requireLogin, async (req, res) => {
+app.get("/transaction", requireAdmin, async (req, res) => {
   const pocket_transaction = await Pocket_Transaction.find({});
   var newstatus= [];
   
